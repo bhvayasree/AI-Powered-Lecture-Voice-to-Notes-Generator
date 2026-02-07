@@ -17,13 +17,13 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("🎓 AI Powered Lecture Voice → Notes Generator")
+st.title("🎓 AI Lecture Voice → Notes Generator")
 
-# Sidebar Settings
-st.sidebar.header("⚙ Settings")
+# Sidebar
+st.sidebar.header("Settings")
 
 model_choice = st.sidebar.selectbox(
-    "Speech-to-Text Model",
+    "STT Model",
     ["Local Whisper"]
 )
 
@@ -51,7 +51,7 @@ def process_audio(file_path, key):
     converted_path = None
     transcript_text = ""
 
-    with st.spinner("🔄 Converting & Transcribing Lecture Audio..."):
+    with st.spinner("Transcribing lecture audio..."):
         try:
             converted_path = convert_audio(file_path)
 
@@ -65,24 +65,23 @@ def process_audio(file_path, key):
                 segments
             )
 
-            st.success("✅ Lecture Transcription Completed")
+            st.success("Transcription completed!")
 
         except Exception as e:
-            st.error(f"Transcription Error: {e}")
+            st.error(f"Error: {e}")
             transcript_text = str(e)
             converted_path = file_path
 
     edited_transcript = st.text_area(
-        "📝 Edit Transcript",
+        "Transcript",
         value=transcript_text,
         height=300,
         key=f"text_{key}"
     )
 
-    # Generate Notes
-    if st.button("📚 Generate Lecture Notes", key=f"btn_{key}"):
+    if st.button("Generate Lecture Notes", key=f"btn_{key}"):
 
-        with st.spinner("🧠 Generating AI Lecture Notes..."):
+        with st.spinner("Generating notes..."):
 
             try:
                 notes, summary = generate_notes_summary(
@@ -91,26 +90,26 @@ def process_audio(file_path, key):
                     summary_length
                 )
 
-                st.markdown("## 📖 Lecture Notes")
+                st.markdown("## Lecture Notes")
                 st.markdown(notes)
 
                 st.download_button(
-                    "⬇ Download Notes",
+                    "Download Notes",
                     notes,
                     file_name="lecture_notes.txt"
                 )
 
-                st.markdown("## 🧾 Summary")
+                st.markdown("## Summary")
                 st.write(summary)
 
                 st.download_button(
-                    "⬇ Download Summary",
+                    "Download Summary",
                     summary,
                     file_name="lecture_summary.txt"
                 )
 
             except Exception as e:
-                st.error(f"Notes Generation Failed: {e}")
+                st.error(f"Generation failed: {e}")
 
     # Cleanup
     if delete_after:
@@ -121,7 +120,7 @@ def process_audio(file_path, key):
 
 # ---------------- LIVE RECORDING ---------------- #
 
-st.markdown("### 🎤 Record Lecture Live")
+st.markdown("### Record Lecture Live")
 
 audio_output = mic_recorder(
     start_prompt="Start Recording",
@@ -135,24 +134,22 @@ if audio_output and "bytes" in audio_output:
     wav_data = audio_output["bytes"]
 
     if wav_data:
-        st.info("Processing Recorded Lecture...")
         temp_path = save_mic_recorder_audio(wav_data)
         time.sleep(1)
         process_audio(temp_path, "live")
 
 # ---------------- FILE UPLOAD ---------------- #
 
-st.markdown("### ⬆ Upload Lecture Audio")
+st.markdown("### Upload Lecture Audio")
 
 uploaded_files = st.file_uploader(
-    "Upload Lecture Recordings",
+    "Upload audio",
     type=["wav", "mp3", "m4a", "ogg", "flac"],
     accept_multiple_files=True
 )
 
 if uploaded_files:
     for file in uploaded_files:
-        st.subheader(f"Processing: {file.name}")
         path = save_uploaded_file(file)
         process_audio(path, file.name)
         break
